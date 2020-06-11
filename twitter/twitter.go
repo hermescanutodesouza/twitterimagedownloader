@@ -16,7 +16,7 @@ type Result struct {
 }
 
 func New() *anaconda.TwitterApi {
-	config:=config.AppConfig()
+	config := config.AppConfig()
 	api := anaconda.NewTwitterApiWithCredentials(
 		config.AcessToken,
 		config.AcessTokenSecret,
@@ -46,12 +46,9 @@ func GetTweeter(api *anaconda.TwitterApi, screenname string, done chan Result) {
 					return
 				}
 				log.Println(screenname, file)
-				a += 1
+				a++
 			}
 		}
 	}
-	var r Result
-	r.Screename = screenname
-	r.Total = a
-	done <- r
+	done <- Result{Screename: screenname, Total: a}
 }

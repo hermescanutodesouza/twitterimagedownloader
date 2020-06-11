@@ -5,22 +5,22 @@ package main
 
 import (
 	"log"
+	"time"
 	"twitterscan/twitter"
 	"twitterscan/util"
 )
 
-
-
 func main() {
+	start := time.Now()
 	payload := util.CheckUp()
 
 	log.Println("Profiles", payload)
 
 	api := twitter.New()
 
-	var results []chan twitter.Result
+	var results = make([]chan twitter.Result, len(payload))
 	for i, v := range payload {
-		results = append(results, make(chan twitter.Result))
+		results[i] = make(chan twitter.Result)
 		go twitter.GetTweeter(api, v.Screenname, results[i]) // run goroutine
 	}
 
@@ -28,5 +28,7 @@ func main() {
 		r := <-results[i]
 		log.Printf("%v - %v", r.Screename, r.Total)
 	}
-	log.Println("Finished")
+	t := time.Now()
+	elapsed := t.Sub(start)
+	log.Println("Finished ", elapsed)
 }
