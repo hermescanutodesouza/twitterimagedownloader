@@ -1,9 +1,11 @@
 package util
 
 import (
+	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"strconv"
 )
 
 func DownloadFile(filepath string, url string) error {
@@ -22,7 +24,24 @@ func DownloadFile(filepath string, url string) error {
 	}
 	defer out.Close()
 
+	size, _ := strconv.Atoi(resp.Header.Get("Content-Length"))
+	downloadSize := int64(size)
+
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
+
+	if downloadSize == 55587 ||
+		downloadSize == 52380 ||
+		downloadSize == 55846 ||
+		downloadSize == 38894 ||
+		downloadSize == 44583 ||
+		downloadSize == 44583 ||
+		downloadSize == 40907 ||
+		downloadSize == 34934 ||
+		downloadSize == 32410 {
+		os.Remove(filepath)
+		return fmt.Errorf("File : %v removed", filepath)
+	}
+
 	return err
 }

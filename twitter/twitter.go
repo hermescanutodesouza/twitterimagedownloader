@@ -30,24 +30,21 @@ func GetTweeter(api *anaconda.TwitterApi, screenname string, done chan Result) {
 	util.CheckFolder(folder)
 	v := url.Values{}
 	v.Set("screen_name", screenname)
-	v.Set("count", "6000")
+	v.Set("count", "1000")
 	searchResult, _ := api.GetUserTimeline(v)
 
 	a := 0
-
 	for _, tweet := range searchResult {
-		media := tweet.Entities.Media
-		for _, v := range media {
+		for _, v := range tweet.ExtendedEntities.Media {
 			file := filepath.Base(v.Media_url)
 			if _, err := os.Stat(folder + "/" + file); os.IsNotExist(err) {
 				err := util.DownloadFile(folder+"/"+file, v.Media_url)
-				if err != nil {
-					log.Println(err)
-					return
+				if err == nil {
+					log.Println(screenname, file)
+					a++
 				}
-				log.Println(screenname, file)
-				a++
 			}
+
 		}
 	}
 	done <- Result{Screename: screenname, Total: a}
