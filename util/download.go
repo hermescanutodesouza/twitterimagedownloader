@@ -55,7 +55,7 @@ func DownloadFile(filepath string, url, screenname string) error {
 	defer out.Close()
 
 	// Write the body to file
-	_, err = io.Copy(out, resp.Body)
+	_, err = io.Copy(out, bytes.NewReader(byteData))
 
 	return err
 }
