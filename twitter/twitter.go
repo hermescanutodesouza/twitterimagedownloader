@@ -13,6 +13,7 @@ import (
 type Result struct {
 	Screename string
 	Total     int
+	Ignored   int
 }
 
 func New() *anaconda.TwitterApi {
@@ -34,18 +35,22 @@ func GetTweeter(api *anaconda.TwitterApi, screenname string, done chan Result) {
 	searchResult, _ := api.GetUserTimeline(v)
 
 	a := 0
+	i := 0
 	for _, tweet := range searchResult {
 		for _, v := range tweet.ExtendedEntities.Media {
 			file := filepath.Base(v.Media_url)
 			if _, err := os.Stat(folder + "/" + file); os.IsNotExist(err) {
-				err := util.DownloadFile(folder+"/"+file, v.Media_url)
-				if err == nil {
-					log.Println(screenname, file)
-					a++
+				xx := util.DownloadFile(folder+"/"+file, v.Media_url, screenname)
+				if xx != nil {
+					//log.Println(xx.Error())
+					i++
+					continue
 				}
+				log.Println(screenname, file)
+				a++
 			}
-
 		}
+
 	}
-	done <- Result{Screename: screenname, Total: a}
+	done <- Result{Screename: screenname, Total: a, Ignored: i}
 }

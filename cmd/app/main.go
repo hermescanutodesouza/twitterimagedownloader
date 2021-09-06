@@ -11,6 +11,9 @@ import (
 )
 
 func main() {
+
+	util.Checkfiles()
+
 	start := time.Now()
 	payload := util.CheckUp()
 	log.Println("Profiles", payload)

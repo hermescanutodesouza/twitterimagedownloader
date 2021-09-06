@@ -1,14 +1,36 @@
 package util
 
 import (
+	"bytes"
+	"crypto/sha256"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
-	"strconv"
 )
 
-func DownloadFile(filepath string, url string) error {
+func filesToSave(hash string) bool {
+	nofile := GetHash()
+	for _, v := range nofile {
+		if v == hash {
+			return false
+		}
+	}
+	return true
+}
+
+func createHash(r []byte) string {
+	h := sha256.New()
+	if _, err := io.Copy(h, bytes.NewReader(r)); err != nil {
+		log.Fatal(err)
+	}
+	return fmt.Sprintf("%x", h.Sum(nil))
+}
+
+func DownloadFile(filepath string, url, screenname string) error {
 
 	// Get the data
 	resp, err := http.Get(url)
@@ -17,6 +39,14 @@ func DownloadFile(filepath string, url string) error {
 	}
 	defer resp.Body.Close()
 
+	byteData, _ := ioutil.ReadAll(resp.Body)
+
+	hash := createHash(byteData)
+
+	if !filesToSave(hash) {
+		return errors.New(fmt.Sprintf("Ignored %s %s %s", url, screenname, hash))
+	}
+
 	// Create the file
 	out, err := os.Create(filepath)
 	if err != nil {
@@ -24,24 +54,8 @@ func DownloadFile(filepath string, url string) error {
 	}
 	defer out.Close()
 
-	size, _ := strconv.Atoi(resp.Header.Get("Content-Length"))
-	downloadSize := int64(size)
-
 	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
-
-	if downloadSize == 55587 ||
-		downloadSize == 52380 ||
-		downloadSize == 55846 ||
-		downloadSize == 38894 ||
-		downloadSize == 44583 ||
-		downloadSize == 44583 ||
-		downloadSize == 40907 ||
-		downloadSize == 34934 ||
-		downloadSize == 32410 {
-		os.Remove(filepath)
-		return fmt.Errorf("File : %v removed", filepath)
-	}
 
 	return err
 }
